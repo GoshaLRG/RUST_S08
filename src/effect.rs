@@ -1,8 +1,9 @@
 use crate::entity::Entity;
+use crate::stats::BattleStats;
 
 pub trait Effect: std::fmt::Debug {
     fn name(&self) -> &str;
-    fn apply(&mut self, target: &mut Entity);
+    fn apply(&mut self, target: &mut Entity, stats: &mut BattleStats);
     fn tick(&mut self);
     fn is_expired(&self) -> bool;
 }
@@ -24,9 +25,10 @@ impl Effect for Poison {
         "Яд"
     }
 
-    fn apply(&mut self, target: &mut Entity) {
+    fn apply(&mut self, target: &mut Entity, stats: &mut BattleStats) {
         println!("Яд наносит {} урона!", self.damage);
         target.take_damage(self.damage as i32);
+        stats.add_poison_damage(self.damage as i32);
     }
 
     fn tick(&mut self) {
@@ -58,9 +60,10 @@ impl Effect for Regeneration {
         "Регенерация"
     }
 
-    fn apply(&mut self, target: &mut Entity) {
+    fn apply(&mut self, target: &mut Entity, stats: &mut BattleStats) {
         println!("Регенерация восстанавливает {} HP!", self.heal_amount);
         target.heal(self.heal_amount as i32);
+        stats.add_healing(self.heal_amount as i32);
     }
 
     fn tick(&mut self) {

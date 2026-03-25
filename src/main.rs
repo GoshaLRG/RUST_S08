@@ -2,6 +2,7 @@ mod entity;
 mod effect;
 mod command;
 mod engine;
+mod stats;
 
 use entity::{Entity, Team};
 use effect::{Poison, Regeneration};
@@ -9,7 +10,7 @@ use engine::Engine;
 use std::io::{self, Write};
 
 fn main() {
-    println!("Добро пожаловать в мое RPG!");
+    println!("Добро пожаловать в мое RPG!)");
     println!("Выберите противника:");
     println!("1. Гоблин");
     println!("2. Усиленный гоблин");
@@ -29,7 +30,7 @@ fn main() {
         }
     };
 
-    let mut engine = Engine::new(12);
+    let mut engine = Engine::new(12, enemy_name);
 
     let mut player = Entity::new("Герой", 100, 15, Team::Player);
     let mut enemy = Entity::new(enemy_name, hp, attack, Team::Enemy);

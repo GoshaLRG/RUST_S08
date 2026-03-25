@@ -1,9 +1,10 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 use crate::entity::Entity;
+use crate::stats::BattleStats;
 
 pub trait Command {
-    fn execute(&self);
+    fn execute(&self, stats: &mut BattleStats);
 }
 
 pub struct AttackCommand {
@@ -18,12 +19,13 @@ impl AttackCommand {
 }
 
 impl Command for AttackCommand {
-    fn execute(&self) {
+    fn execute(&self, stats: &mut BattleStats) {
         let mut attacker = self.attacker.borrow_mut();
         let mut target = self.target.borrow_mut();
         let damage = attacker.attack;
         println!("{} атакует {} и наносит {} урона!", attacker.name, target.name, damage);
         target.take_damage(damage);
+        stats.add_damage(damage);
     }
 }
 
@@ -40,12 +42,12 @@ impl HealCommand {
 }
 
 impl Command for HealCommand {
-    fn execute(&self) {
+    fn execute(&self, stats: &mut BattleStats) {
         let healer_name = self.healer.borrow().name.clone();
         let target_name = self.target.borrow().name.clone();
         println!("{} применяет лечение на {}", healer_name, target_name);
-
         let mut target = self.target.borrow_mut();
         target.heal(self.amount);
+        stats.add_healing(self.amount);
     }
 }

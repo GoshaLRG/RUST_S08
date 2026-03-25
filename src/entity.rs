@@ -1,6 +1,7 @@
 use crate::effect::Effect;
+use crate::stats::BattleStats;
 
-#[derive(Debug)] 
+#[derive(Debug)]
 pub struct Entity {
     pub name: String,
     pub hp: i32,
@@ -49,11 +50,10 @@ impl Entity {
         self.effects.push(effect);
     }
 
-    
-    pub fn apply_effects(&mut self) {
+    pub fn apply_effects(&mut self, stats: &mut BattleStats) {
         let mut effects = std::mem::take(&mut self.effects);
         for mut effect in effects {
-            effect.apply(self);
+            effect.apply(self, stats);
             self.effects.push(effect);
         }
     }
