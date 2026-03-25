@@ -1,8 +1,9 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::VecDeque;
+use std::io::{self, Write};
 use crate::entity::Entity;
-use crate::command::{Command, AttackCommand};
+use crate::command::{Command, AttackCommand, HealCommand};
 
 pub struct Engine {
     pub entities: Vec<Rc<RefCell<Entity>>>,
@@ -35,9 +36,9 @@ impl Engine {
     }
 
     pub fn gather_commands(&mut self) {
+        // Находим игрока и врага
         let mut player = None;
         let mut enemy = None;
-
         for entity_rc in &self.entities {
             let entity = entity_rc.borrow();
             match entity.team {
@@ -45,10 +46,31 @@ impl Engine {
                 crate::entity::Team::Enemy => enemy = Some(entity_rc.clone()),
             }
         }
+        let (player, enemy) = match (player, enemy) {
+            (Some(p), Some(e)) => (p, e),
+            _ => return,
+        };
 
-        if let (Some(player), Some(enemy)) = (player, enemy) {
-            let cmd = AttackCommand::new(player, enemy);
-            self.action_queue.push_back(Box::new(cmd));
+        println!("\n[Ваш ход]");
+        println!("1. Атаковать врага");
+        println!("2. Лечить себя +20 HP");
+        print!("Выберите действие: ");
+        io::stdout().flush().unwrap();
+
+        let mut choice = String::new();
+        io::stdin().read_line(&mut choice).unwrap();
+        match choice.trim() {
+            "1" => {
+                let cmd = AttackCommand::new(player, enemy);
+                self.action_queue.push_back(Box::new(cmd));
+            }
+            "2" => {
+                let cmd = HealCommand::new(player.clone(), player, 20);
+                self.action_queue.push_back(Box::new(cmd));
+            }
+            _ => {
+                println!("Неверный выбор, пропуск хода.");
+            }
         }
     }
 
@@ -63,20 +85,17 @@ impl Engine {
 
         let mut player_alive = false;
         let mut enemy_alive = false;
-
         for e in &self.entities {
             match e.borrow().team {
                 crate::entity::Team::Player => player_alive = true,
                 crate::entity::Team::Enemy => enemy_alive = true,
             }
         }
-
         !(player_alive && enemy_alive)
     }
 
     pub fn run(&mut self) {
         println!("=== Бой начинается! ===");
-
         while self.round < self.max_rounds {
             self.round += 1;
             println!("\n--- Раунд {} ---", self.round);
@@ -91,11 +110,9 @@ impl Engine {
                 break;
             }
         }
-
         if self.round >= self.max_rounds {
             println!("Бой завершён по достижении максимального числа раундов.");
         }
-
         self.print_result();
     }
 
@@ -105,15 +122,12 @@ impl Engine {
             println!("Все погибли. Ничья.");
             return;
         }
-
         for e in &self.entities {
             let entity = e.borrow();
             println!("{}: HP = {}/{}", entity.name, entity.hp, entity.max_hp);
         }
-
         let player = self.entities.iter().find(|e| e.borrow().team == crate::entity::Team::Player);
         let enemy = self.entities.iter().find(|e| e.borrow().team == crate::entity::Team::Enemy);
-
         match (player, enemy) {
             (Some(_), None) => println!("Победил игрок!"),
             (None, Some(_)) => println!("Победил враг!"),

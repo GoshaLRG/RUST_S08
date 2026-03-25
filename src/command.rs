@@ -26,3 +26,26 @@ impl Command for AttackCommand {
         target.take_damage(damage);
     }
 }
+
+pub struct HealCommand {
+    pub healer: Rc<RefCell<Entity>>,
+    pub target: Rc<RefCell<Entity>>,
+    pub amount: i32,
+}
+
+impl HealCommand {
+    pub fn new(healer: Rc<RefCell<Entity>>, target: Rc<RefCell<Entity>>, amount: i32) -> Self {
+        Self { healer, target, amount }
+    }
+}
+
+impl Command for HealCommand {
+    fn execute(&self) {
+        let healer_name = self.healer.borrow().name.clone();
+        let target_name = self.target.borrow().name.clone();
+        println!("{} применяет лечение на {}", healer_name, target_name);
+
+        let mut target = self.target.borrow_mut();
+        target.heal(self.amount);
+    }
+}

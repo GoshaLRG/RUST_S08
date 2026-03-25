@@ -4,7 +4,7 @@ mod command;
 mod engine;
 
 use entity::{Entity, Team};
-use effect::Poison;
+use effect::{Poison, Regeneration};
 use engine::Engine;
 use std::io::{self, Write};
 
@@ -31,12 +31,14 @@ fn main() {
 
     let mut engine = Engine::new(12);
 
-    let player = Entity::new("Герой", 100, 15, Team::Player);
+    let mut player = Entity::new("Герой", 100, 15, Team::Player);
     let mut enemy = Entity::new(enemy_name, hp, attack, Team::Enemy);
 
-    // Навешиваем яд на врага
     let poison = Box::new(Poison::new(3, 5));
     enemy.add_effect(poison);
+
+    let regen = Box::new(Regeneration::new(3, 10));
+    player.add_effect(regen);
 
     engine.add_entity(player);
     engine.add_entity(enemy);
